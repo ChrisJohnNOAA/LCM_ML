@@ -4,7 +4,6 @@ function [predictors, scoreStruct] = SelectPredictors(varName, data, predictors,
     else
         [predictors, scoreStruct] = QuickSelection(varName, data, predictors, target, maxPredictors, scoreStruct);
     end
-
 end
 
 function [predictors, scoreStruct] = QuickSelection(varName, data, predictors, target, maxPredictors, scoreStruct)
@@ -17,7 +16,7 @@ function [predictors, scoreStruct] = QuickSelection(varName, data, predictors, t
 
     predictors = predictors(p<0.05);
 
-    % Check for fscore > 100
+    % Check for fscore > 400
     [featureIndex, featureScore] = fsrftest(...
         data(:, predictors), ...
         target);
@@ -36,6 +35,23 @@ function [predictors, scoreStruct] = QuickSelection(varName, data, predictors, t
 end
 
 function [predictors, scoreStruct] = SequentialSelection(varName, data, predictors, target, maxPredictors, scoreStruct, kernelfcn)
+% Check for correlation p < 0.05
+[r, p] = corr(table2array(data(:, predictors)), ...
+    target, 'rows','complete');
+
+scoreStruct.(varName+"_corr") = table(predictors', r, p);
+scoreStruct.(varName+"_corr") = sortrows(scoreStruct.(varName+"_corr"),'r','descend');
+
+predictors = predictors(p<0.05);
+
+% Check for fscore > 10
+[featureIndex, featureScore] = fsrftest(...
+    data(:, predictors), ...
+    target);
+
+scoreStruct.(varName+"_f") = table(predictors(featureIndex)', featureScore(featureIndex)');
+predictors = predictors(featureScore > 10);
+
 
 c = cvpartition(target,'k',10);
 opts = statset('Display','iter','UseParallel',true);

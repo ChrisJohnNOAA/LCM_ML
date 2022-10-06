@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#SBATCH -p 128x24  # Partition name
+#SBATCH -J calsimml       # Job name
+#SBATCH --mail-user=cpjohn@ucsc.edu
+#SBATCH --mail-type=ALL
+#SBATCH -o %x-%j.out    # Name of stdout output file
+#SBATCH --error=%x-%j.err
+#SBATCH -N 1        # Total number of nodes requested (128x24/Instructional only)
+#SBATCH -n 1        # Total number of mpi tasks requested per node
+#SBATCH -c 24      # CPUs per task
+#SBATCH -t 48:00:00  # Run Time (hh:mm:ss) - 0.5 hours (optional)
+#SBATCH --mem=30G # Memory to be allocated PER NODE
+
+module load matlab/2021b
+matlab -nodisplay -nosplash -softwareopengl -sd "/hb/home/cpjohn/LCM_ML/" -r "SlurmLoadAndSelectCalSim(); exit;"
