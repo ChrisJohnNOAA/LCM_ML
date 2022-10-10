@@ -9,7 +9,7 @@
 #SBATCH -N 1        # Total number of nodes requested (128x24/Instructional only)
 #SBATCH -n 1        # Total number of mpi tasks requested per node
 #SBATCH -c 24      # CPUs per task
-#SBATCH -t 48:00:00  # Run Time (hh:mm:ss) - 0.5 hours (optional)
+#SBATCH -t 299:00:00  # Run Time (hh:mm:ss) - 0.5 hours (optional)
 #SBATCH --mem=30G # Memory to be allocated PER NODE
 
 module load matlab/2021b
