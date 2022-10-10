@@ -30,7 +30,7 @@ variables = ["C_KSWCK", "C_SAC287", "C_SAC269", "C_SAC257", "C_SAC247", ...
     "DXC", "C_SAC000", "D_OMR027_CAA000", "D_OMR028_DMC000",...
     "C_CLV004", "C_MOK022", "X2_WHLJPOD_EST_", "S_SLUIS_CVP", "S_SLUIS_SWP"];
 
-%load("CalSimPredictors.mat", "CalSimPredictors");
+load("CalSimPredictors.mat", "CalSimPredictors");
 %load('modelInputScoring.mat', 'scoreStruct');
 %load('CalSimMLVariables.mat', 'variables');
 
@@ -158,8 +158,9 @@ allPredictors = AddLargestByPrefixIfMissing(allPredictors, preNormPredictors, "A
 
 [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
     sac185Variables, calOut, ...
-    'C_SAC148', 15, false, 'ARDRationalQuadratic');
-
+    'C_SAC148', 15, false, 'RationalQuadratic'); % Was ARDRationalQuadratic
+% ARD versions are slower, and in this case it threw an error during
+% forward selection
 
 [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
     sac146Variables, calOut, ...
@@ -257,7 +258,6 @@ allPredictors = AddLargestByPrefixIfMissing(allPredictors, preNormPredictors, "A
 [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
     allPredictors, calOut, ...
     'D_OMR027_CAA000', 20, true, 'Exponential');
-
 
 % Since these might pull in other storage, add them here.
 [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
@@ -381,10 +381,16 @@ end
 
 function [predictors, scoreStruct] = SlurmSelectPredictors(varName, calPred, predictors, target, predictorCount, scoreStruct, indepthSelection, kernelfcn)
     disp("starting " + varName)
-    [predictors, scoreStruct] = SelectPredictors(varName, calPred, predictors, target, predictorCount, scoreStruct, indepthSelection, kernelfcn);
-    save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_predictors.mat'), 'predictors');
-    save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_scoreStruct.mat'), 'scoreStruct');
-    disp("finished " + varName)
+    if (isfile(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_predictors.mat')) && isfile(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_scoreStruct.mat')))
+        load(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_predictors.mat'), 'predictors');
+        load(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_scoreStruct.mat'), 'scoreStruct');
+        disp("loaded " + varName)
+    else
+        [predictors, scoreStruct] = SelectPredictors(varName, calPred, predictors, target, predictorCount, scoreStruct, indepthSelection, kernelfcn);
+        save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_predictors.mat'), 'predictors');
+        save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_scoreStruct.mat'), 'scoreStruct');
+        disp("finished " + varName)
+    end
 end
 
 function [scoreStruct, CalSimPredictors] = AnalyzeVariableIfUsed(slurm, scoreStruct, ...
