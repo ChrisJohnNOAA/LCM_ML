@@ -4,6 +4,7 @@ function [predictors, scoreStruct] = SelectPredictors(varName, data, predictors,
     else
         [predictors, scoreStruct] = QuickSelection(varName, data, predictors, target, maxPredictors, scoreStruct);
     end
+
 end
 
 function [predictors, scoreStruct] = QuickSelection(varName, data, predictors, target, maxPredictors, scoreStruct)
@@ -34,6 +35,7 @@ function [predictors, scoreStruct] = QuickSelection(varName, data, predictors, t
     predictors = predictors(1:min(maxPredictors,length(predictors)));
 end
 
+
 function [predictors, scoreStruct] = SequentialSelection(varName, data, predictors, target, maxPredictors, scoreStruct, kernelfcn)
 % Check for correlation p < 0.05
 [r, p] = corr(table2array(data(:, predictors)), ...
@@ -55,15 +57,24 @@ predictors = predictors(featureScore > 10);
 
 c = cvpartition(target,'k',10);
 opts = statset('Display','iter','UseParallel',true);
-fun = @(XTrain,YTrain,XTest,YTest)loss(fitrgp(...
-    XTrain, ...
-    YTrain, ...
-    'BasisFunction', 'constant', ...
-    'Standardize', true, ...
-    'PredictMethod','exact', ... % It defaults to 'bcd' if training data > 10,000 and I'm using 13,536 rows, but bcd seems to get stuck training
-    'KernelFunction', kernelfcn),XTest,YTest);
 
-[fs,history] = sequentialfs(fun,table2array(data(:, predictors)),target,'cv',c,'options',opts);
+function [lossAmount] = FitAndLoss(XTrain,YTrain,XTest,YTest)
+    try
+        lossAmount = loss(fitrgp(...
+            XTrain, ...
+            YTrain, ...
+            'BasisFunction', 'constant', ...
+            'Standardize', true, ...
+            'PredictMethod','exact', ... % It defaults to 'bcd' if training data > 10,000 and I'm using 13,536 rows, but bcd seems to get stuck training
+            'KernelFunction', kernelfcn),XTest,YTest);
+    catch ME
+        disp(ME)
+        lossAmount = 999999999;
+    end
+end
+
+
+[fs,history] = sequentialfs(@FitAndLoss,table2array(data(:, predictors)),target,'cv',c,'options',opts);
 scoreStruct.(varName+"_history") = history;
 predictors = predictors(fs);
 end
