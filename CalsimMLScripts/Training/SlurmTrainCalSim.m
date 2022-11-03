@@ -1,4 +1,8 @@
-function [pred, out] = SlurmLoadAndSelectCalSim()
+function [] = SlurmTrainCalSim()
+    % create a local cluster object
+    pc = parcluster('local')
+    pool = parpool(pc, str2num(getenv('SLURM_CPUS_ON_NODE')))
+
     [nddoff2020, outnddoff2020] = PrepareCalSimScenario("/hb/home/cpjohn/LCM_ML/Calsim_SV/0_DCR19_12.30_120621_NDDOff_2020.csv", GetConfig(0), "/hb/home/cpjohn/LCM_ML/Calsim_dss/0_DCR19_12.30_120621_NDDOff_2020.dss.csv", "/hb/home/cpjohn/LCM_ML/Calsim_dss_used/0_DCR19_12.30_120621_NDDOff_2020.dss.csv");
     [nddoff2040, outnddoff2040 ] = PrepareCalSimScenario("/hb/home/cpjohn/LCM_ML/Calsim_SV/0_DCR19_12.30_122021_NDDOff_2040CT.csv", GetConfig(0), "/hb/home/cpjohn/LCM_ML/Calsim_dss/0_DCR19_12.30_122021_NDDOff_2040CT.dss.csv", "/hb/home/cpjohn/LCM_ML/Calsim_dss_used/0_DCR19_12.30_122021_NDDOff_2040CT.dss.csv");
     [nddswp30002020, outnddswp30002020] = PrepareCalSimScenario("/hb/home/cpjohn/LCM_ML/Calsim_SV/1_DCR19_12.30_120621_NDD_SWP3000_2020.csv", GetConfig(1), "/hb/home/cpjohn/LCM_ML/Calsim_dss/1_DCR19_12.30_120621_NDD_SWP3000_2020.dss.csv", "/hb/home/cpjohn/LCM_ML/Calsim_dss_used/1_DCR19_12.30_120621_NDD_SWP3000_2020.dss.csv");
@@ -18,19 +22,13 @@ function [pred, out] = SlurmLoadAndSelectCalSim()
     randomOrder = randperm(height(pred));
     pred = pred(randomOrder,:);
     out = out(randomOrder,:);
-    
-    % create a local cluster object
-    pc = parcluster('local')
-    
-    % explicitly set the JobStorageLocation to the temp directory that was created in your sbatch script
-    %pc.JobStorageLocation = strcat(getenv('SCRATCH'),'/', getenv('SLURM_JOB_ID'))
-    
-    % start the matlabpool with maximum available workers
-    % control how many workers by setting ntasks in your sbatch script
-    pool = parpool(pc, str2num(getenv('SLURM_CPUS_ON_NODE')))
-    %pool = parpool(pc, 23)
 
-    PredictorSelection(pred, out, true);
+    % Slurm should already have the predictors selected, what this does is
+    % use use the saved individual files to load up the results and return
+    % it the way the trainer code expects it to be structured.
+    [scoreStruct, CalSimPredictors, variables] = PredictorSelection(pred, out, false);
+    
+    CalSimModels = CalSimModelTrainer(CalSimPredictors, pred, out, variables, true);
 end
 
 function [pred, out] = PrepareCalSimScenario(SVPath, ConfigParams, DSSFull, DSSUsed)

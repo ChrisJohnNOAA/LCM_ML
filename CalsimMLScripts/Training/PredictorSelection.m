@@ -1,16 +1,4 @@
 function [scoreStruct, CalSimPredictors, variables] = PredictorSelection(predictors,output, slurm)
-if (slurm)
-    % create a local cluster object
-    pc = parcluster('local')
-    
-    % explicitly set the JobStorageLocation to the temp directory that was created in your sbatch script
-    %pc.JobStorageLocation = strcat(getenv('SCRATCH'),'/', getenv('SLURM_JOB_ID'))
-    
-    % start the matlabpool with maximum available workers
-    % control how many workers by setting ntasks in your sbatch script
-    pool = parpool(pc, str2num(getenv('SLURM_CPUS_ON_NODE')))
-    %pool = parpool(pc, 23)
-end
 
 predictors = standardizeMissing(predictors, {Inf, -Inf});
 preNormPredictors = predictors(:, 2:end);
@@ -266,7 +254,10 @@ allPredictors = AddLargestByPrefixIfMissing(allPredictors, preNormPredictors, "A
     allPredictors, calOut, ...
     'S_SLUIS_SWP', 20, true, 'Exponential');
 
-storageUsed = FindPredictorsWithPrefix(CalSimPredictors, variables, "S_");
+%storageUsed = FindPredictorsWithPrefix(CalSimPredictors, variables, "S_");
+% For now just say all of the storage is used.
+storageUsed = [];
+storageUsed = AddPrefixIfMissing(storageUsed, calPred, "S_");
 
 % Storage Variables
 [scoreStruct, CalSimPredictors] = AnalyzeVariableIfUsed(slurm, scoreStruct, CalSimPredictors, calPred, ...
@@ -333,20 +324,19 @@ storageUsed = FindPredictorsWithPrefix(CalSimPredictors, variables, "S_");
     losvqVariables, calOut, ...
     'S_LOSVQ', storageUsed, 15, true, 'ARDRationalQuadratic');
 
-
 variables = unique(cat(2, variables, storageUsed));
 
 save("CalSimPredictors.mat", "CalSimPredictors");
 save('modelInputScoring.mat', 'scoreStruct');
 save('CalSimMLVariables.mat', 'variables');
 
-newStorage = FindPredictorsWithPrefix(CalSimPredictors, variables, "S_");
-
-for storage = newStorage 
-    if ~any(strcmp(variables,storage))
-        disp(storage + ": Warning storage used that doesn't have selected predictors. Added as predictor for other storage.")
-    end
-end
+% newStorage = FindPredictorsWithPrefix(CalSimPredictors, variables, "S_");
+% 
+% for storage = newStorage 
+%     if ~any(strcmp(variables,storage))
+%         disp(storage + ": Warning storage used that doesn't have selected predictors. Added as predictor for other storage.")
+%     end
+% end
 end
 
 function [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, ...

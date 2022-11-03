@@ -1,4 +1,4 @@
-function [CalSimModels] = CalSimModelTrainer(CalSimPredictors, calPred, calOut, variables)
+function [CalSimModels] = CalSimModelTrainer(CalSimPredictors, calPred, calOut, variables, slurm)
 
 CalSimModels = struct();
 
@@ -9,12 +9,12 @@ CalSimModels = struct();
 %    "S_ECHOL", "S_SLUIS_CVP", "S_SLUIS_SWP"];
 
 for variable = variables
-    CalSimModels = trainModel(CalSimModels, calPred, CalSimPredictors, calOut, variable);
+    CalSimModels = trainModel(CalSimModels, calPred, CalSimPredictors, calOut, variable, slurm);
 end
 
 end
 
-function [CalSimModels] = trainModel(CalSimModels, calPred, CalSimPredictors, output, varName)
+function [CalSimModels] = trainModel(CalSimModels, calPred, CalSimPredictors, output, varName, slurm)
     varName
 
     %'exponential'	Exponential kernel.
@@ -28,11 +28,23 @@ function [CalSimModels] = trainModel(CalSimModels, calPred, CalSimPredictors, ou
     %'ardmatern52'	Matern kernel with parameter 5/2 and a separate length scale per predictor.
     %'ardrationalquadratic'	Rational quadratic kernel with a separate length scale per predictor.
 
-    % Train Model
-    [model, rmse] = trainCalSimGPRModel(calPred, CalSimPredictors.(varName),  output.(varName))
+    if (slurm)
+        if (isfile(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_model.mat')) && isfile(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_rmse.mat')))
+            load(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_model.mat'), 'model');
+            load(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_rmse.mat'), 'rmse');
+            disp("loaded " + varName)
+        else
+            [model, rmse] = trainCalSimGPRModel(calPred, CalSimPredictors.(varName),  output.(varName))
+            save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_model.mat'), 'model');
+            save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_rmse.mat'), 'rmse');
+            disp("finished " + varName)
+        end
+    else
+        % Train Model
+        [model, rmse] = trainCalSimGPRModel(calPred, CalSimPredictors.(varName),  output.(varName))
+    end
+
     CalSimModels.(varName) = model;
     CalSimModels.(varName + "_rmse") = rmse;
-    
     save('CalSimModels.mat', 'CalSimModels');
-    
 end
