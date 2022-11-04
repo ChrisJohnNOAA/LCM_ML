@@ -28,23 +28,28 @@ function [CalSimModels] = trainModel(CalSimModels, calPred, CalSimPredictors, ou
     %'ardmatern52'	Matern kernel with parameter 5/2 and a separate length scale per predictor.
     %'ardrationalquadratic'	Rational quadratic kernel with a separate length scale per predictor.
 
-    if (slurm)
-        if (isfile(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_model.mat')) && isfile(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_rmse.mat')))
-            load(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_model.mat'), 'model');
-            load(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_rmse.mat'), 'rmse');
-            disp("loaded " + varName)
-        else
-            [model, rmse] = trainCalSimGPRModel(calPred, CalSimPredictors.(varName),  output.(varName))
-            save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_model.mat'), 'model');
-            save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_rmse.mat'), 'rmse');
-            disp("finished " + varName)
-        end
-    else
-        % Train Model
-        [model, rmse] = trainCalSimGPRModel(calPred, CalSimPredictors.(varName),  output.(varName))
-    end
+    if (isfield(CalSimPredictors, varName) && ismember(varName, output.Properties.VariableNames))
 
-    CalSimModels.(varName) = model;
-    CalSimModels.(varName + "_rmse") = rmse;
-    save('CalSimModels.mat', 'CalSimModels');
+        if (slurm)
+            if (isfile(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_model.mat')) && isfile(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_rmse.mat')))
+                load(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_model.mat'), 'model');
+                load(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_rmse.mat'), 'rmse');
+                disp("loaded " + varName)
+            else
+                [model, rmse] = trainCalSimGPRModel(calPred, CalSimPredictors.(varName),  output.(varName))
+                save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_model.mat'), 'model');
+                save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_rmse.mat'), 'rmse');
+                disp("finished " + varName)
+            end
+        else
+            % Train Model
+            [model, rmse] = trainCalSimGPRModel(calPred, CalSimPredictors.(varName),  output.(varName))
+        end
+    
+        CalSimModels.(varName) = model;
+        CalSimModels.(varName + "_rmse") = rmse;
+        save('CalSimModels.mat', 'CalSimModels');
+    else
+        disp("Missing predictors and/or output, skipping training for " + varName)
+    end
 end
