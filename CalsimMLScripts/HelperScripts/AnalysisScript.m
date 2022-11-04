@@ -1,6 +1,6 @@
 function [analysis] = AnalysisScript(calPred, calOut, CalSimModels, variables)
 analysis = struct();
-
+variables = variables(isfield(CalSimModels, variables));
 for variable = variables
     % Do a rough "normalization" to see how large rmse is relative to
     % variable values.
