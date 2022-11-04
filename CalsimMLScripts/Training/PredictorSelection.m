@@ -67,7 +67,8 @@ sac082Variables = cat(2, ["SR_22", "SR_23", "SR_24", "SR_26N"], sac083Variables)
 sac063Variables = cat(2, ["SR_26S"], sac082Variables, folsmVariables);
 
 pardeVariables = ["S_PARDE", "I_PARDE", "I_MOK079", "I_SFM005", "I_MFM008", "I_NFM006"];
-mokVariables = cat(2, pardeVariables, [ "SR_60N"]);
+cmcheVariables = cat(2, pardeVariables, ["S_CMCHE", "I_CMCHE"]);
+mokVariables = cat(2, cmcheVariables, [ "SR_60N"]);
 lowerMokVariables = cat(2, ["I_MOK019B", "I_MOK019A", "I_CSM035"], mokVariables);
 
 sjrInflows = ["I_MCLRE", "SR_60S", "SR_61", "SR_62", "SR_63", "SR_64", "SR_71", "SR_72", "SR_73"];
@@ -184,7 +185,7 @@ allPredictors = AddLargestByPrefixIfMissing(allPredictors, preNormPredictors, "A
 
 [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
     ybpVariables, calOut, ...
-    'C_CSL004B', 15, true, 'ARDMatern32');
+    'C_CSL004B', 15, false, 'ARDMatern32');
 
 
 % LOWER SAC
@@ -204,7 +205,7 @@ allPredictors = AddLargestByPrefixIfMissing(allPredictors, preNormPredictors, "A
 
 [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
     cat(2, allPredictors, "MONTH_DAYS"), calOut, ...
-    'DXC', 20, true, 'Exponential');
+    'DXC', 20, false, 'Exponential');
 
 [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
     allPredictors, calOut, ...
@@ -237,13 +238,13 @@ allPredictors = AddLargestByPrefixIfMissing(allPredictors, preNormPredictors, "A
 % Add in swp and cvp here for the OMR diversions
 [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
     allPredictors, calOut, ...
-    'D_OMR028_DMC000', 20, true, 'RationalQuadratic');
+    'D_OMR028_DMC000', 20, false, 'RationalQuadratic');
 
 
 % This is Clifton Court Forebay which is big pumps for SWP
 [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
     allPredictors, calOut, ...
-    'D_OMR027_CAA000', 20, true, 'Exponential');
+    'D_OMR027_CAA000', 20, false, 'Exponential');
 
 % Since these might pull in other storage, add them here.
 [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
@@ -252,11 +253,11 @@ allPredictors = AddLargestByPrefixIfMissing(allPredictors, preNormPredictors, "A
 
 [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
     allPredictors, calOut, ...
-    'S_SLUIS_SWP', 20, true, 'Exponential');
+    'S_SLUIS_SWP', 20, false, 'Exponential');
 
 %storageUsed = FindPredictorsWithPrefix(CalSimPredictors, variables, "S_");
 % For now just say all of the storage is used.
-storageUsed = [];
+storageUsed = {};
 storageUsed = AddPrefixIfMissing(storageUsed, calPred, "S_");
 
 % Storage Variables
@@ -270,11 +271,11 @@ storageUsed = AddPrefixIfMissing(storageUsed, calPred, "S_");
 
 [scoreStruct, CalSimPredictors] = AnalyzeVariableIfUsed(slurm, scoreStruct, CalSimPredictors, calPred, ...
     wkytnVariables, calOut, ...
-    'S_WKYTN', storageUsed, 15, true, 'Exponential');
+    'S_WKYTN', storageUsed, 15, false, 'Exponential');
 
 [scoreStruct, CalSimPredictors] = AnalyzeVariableIfUsed(slurm, scoreStruct, CalSimPredictors, calPred, ...
     almnrVariables, calOut, ...
-    'S_ALMNR', storageUsed, 15, true, 'ARDMatern32');
+    'S_ALMNR', storageUsed, 15, false, 'ARDMatern32');
 
 [scoreStruct, CalSimPredictors] = AnalyzeVariableIfUsed(slurm, scoreStruct, CalSimPredictors, calPred, ...
     orovlVariables, calOut, ...
@@ -317,12 +318,16 @@ storageUsed = AddPrefixIfMissing(storageUsed, calPred, "S_");
     'S_CLRLK', storageUsed, 15, false, 'ARDRationalQuadratic');
 
 [scoreStruct, CalSimPredictors] = AnalyzeVariableIfUsed(slurm, scoreStruct, CalSimPredictors, calPred, ...
+    cmcheVariables, calOut, ...
+    'S_CMCHE', storageUsed, 15, false, 'Exponential');
+
+[scoreStruct, CalSimPredictors] = AnalyzeVariableIfUsed(slurm, scoreStruct, CalSimPredictors, calPred, ...
     pardeVariables, calOut, ...
-    'S_PARDE', storageUsed, 15, true, 'Exponential');
+    'S_PARDE', storageUsed, 15, false, 'Exponential');
 
 [scoreStruct, CalSimPredictors] = AnalyzeVariableIfUsed(slurm, scoreStruct, CalSimPredictors, calPred, ...
     losvqVariables, calOut, ...
-    'S_LOSVQ', storageUsed, 15, true, 'ARDRationalQuadratic');
+    'S_LOSVQ', storageUsed, 15, false, 'ARDRationalQuadratic');
 
 variables = unique(cat(2, variables, storageUsed));
 
@@ -436,9 +441,11 @@ end
 function matches = FindPredictorsWithPrefix(CalSimPredictors, variables, prefix)
     matches = {};
     for variable = variables
-        for name = CalSimPredictors.(variable)
-            if startsWith(name,prefix) && ~any(strcmp(matches, name))
-                matches(end+1) = cellstr(name);
+        if (isfield(CalSimPredictors, variable))
+            for name = CalSimPredictors.(variable)
+                if startsWith(name,prefix) && ~any(strcmp(matches, name))
+                    matches(end+1) = cellstr(name);
+                end
             end
         end
     end
