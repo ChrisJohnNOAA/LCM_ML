@@ -16,9 +16,10 @@ variables = ["C_KSWCK", "C_SAC287", "C_SAC269", "C_SAC257", "C_SAC247", ...
     "SP_SAC083_YBP037", "C_SAC075", "C_SAC065", "C_YBP002", "C_CSL004B",...
     "C_SAC063", "C_SAC062", "C_SAC041", "C_SAC029A", "C_SAC022", "C_SAC007",...
     "DXC", "C_SAC000", "D_OMR027_CAA000", "D_OMR028_DMC000",...
-    "C_CLV004", "C_MOK022", "X2_WHLJPOD_EST_", "S_SLUIS_CVP", "S_SLUIS_SWP"];
+    "C_CLV004", "C_MOK022", "X2_WHLJPOD_EST_", "S_SLUIS_CVP", "S_SLUIS_SWP",...
+    "CVPRULECV", "SWPRULECV"];
 
-load("CalSimPredictors.mat", "CalSimPredictors");
+%load("CalSimPredictors.mat", "CalSimPredictors");
 %load('modelInputScoring.mat', 'scoreStruct');
 %load('CalSimMLVariables.mat', 'variables');
 
@@ -256,6 +257,14 @@ allPredictors = AddLargestByPrefixIfMissing(allPredictors, preNormPredictors, "A
     allPredictors, calOut, ...
     'S_SLUIS_SWP', 20, false, 'Exponential');
 
+[scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
+    allPredictors, calOut, ...
+    'CVPRULECV', 20, false, 'ARDExponential');
+
+[scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, CalSimPredictors, calPred, ...
+    allPredictors, calOut, ...
+    'SWPRULECV', 20, false, 'Exponential');
+
 %storageUsed = FindPredictorsWithPrefix(CalSimPredictors, variables, "S_");
 % For now just say all of the storage is used.
 storageUsed = {};
@@ -354,6 +363,12 @@ function [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, .
     indepthSelection, kernelfcn)
     varName
 
+    % this is the default value, and many of the other options take
+    % significantly longer to to feature selection with (particularlt the
+    % 'ard' options). Trying the simpler default to see if we can do
+    % feature selection in a reasonable time frame.
+    kernelfcn = 'squaredexponential';
+
     % Globally relevant values, added here to all rather than including in
     % the above lists.
     predictors = AddIfMissing(predictors, "eiRatio");
@@ -363,6 +378,8 @@ function [scoreStruct, CalSimPredictors] = AnalyzeVariable(slurm, scoreStruct, .
     predictors = AddIfMissing(predictors, "swpcapacity");
     predictors = AddIfMissing(predictors, "cvpcapacity");
     predictors = AddIfMissing(predictors, "X2_WHLJPOD_EST_");
+    predictors = AddIfMissing(predictors, "CVPRULECV");
+    predictors = AddIfMissing(predictors, "SWPRULECV");
 
     %future = parfeval(@SlurmSelectPredictors, 0, varName, calPred, predictors, output.(varName), predictorCount, false, kernelfcn);
     %future = batch(@SlurmSelectPredictors, 0, {varName, calPred, predictors, output.(varName), predictorCount, false, kernelfcn});
