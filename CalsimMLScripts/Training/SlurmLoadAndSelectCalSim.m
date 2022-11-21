@@ -67,16 +67,27 @@ pred.source5 = repmat(ConfigParams.source5,height(pred),1);
 
 pred.month = str2double(dateSplit(:,2));
 
-eiRatio = [0.65, 0.65, 0.65, 0.65, 0.00, 0.35, 0.35, 0.35, 0.35, 0.65, 0.65, 0.65];
+% Note this is based on EiRatio.table, however in wresl Jan is month 4 and
+% october is month 1. This is re-ordered to make Jan 1 and Dec 12 since
+% that is the numbering used in the matlab code.
+eiRatio = [0.65, 0.00, 0.35, 0.35, 0.35, 0.35, 0.65, 0.65, 0.65, 0.65, 0.65, 0.65];
 
 % Add demand table here (same across scenarios) might have monthly effect-
 % check in predictor selection
-demand_demand = [1.891, 3.111, 1.138, 1.015, 0.324, 0.566, 1.363, 1.434, 0.630, 1.452, 2.388, 1.975];
-demand_summ = [1.891, 5.002,6.140,7.155,7.479,8.045,9.408,10.842,11.472,12.924,15.312,17.287];
+demand_demand = [1.015, 0.324, 0.566, 1.363, 1.434, 0.630, 1.452, 2.388, 1.975, 1.891, 3.111, 1.138];
+demand_summ = [7.155,7.479,8.045,9.408,10.842,11.472,12.924,15.312,17.287,1.891, 5.002,6.140];
 
 pred.eiRatio = eiRatio(pred.month)';
 pred.demand_demand = demand_demand(pred.month)';
 pred.demand_summ = demand_summ(pred.month)';
+
+% If Jan 8RI >= 1.5 MAF, the Feb EI ratio was 0.35,
+% If Jan 8RI <= 1.0 MAF, the Feb EI ratio was 0.45. 
+% Any value between them was derived by linear interpolation.
+eightRiverIndex = pred.UNIMP_OROV + pred.UNIMP_FOLS + pred.UNIMP_YUBA + pred.UNIMP_SRBB + pred.UNIMP_ST + pred.UNIMP_TU + pred.UNIMP_ME + pred.UNIMP_SJ;
+febEiX = [0, 1000, 1500, 10000];
+febEiV = [0.45, 0.45, 0.35, 0.35];
+pred.eiRatio(pred.month==2) = interp1(febEiX, febEiV, eightRiverIndex(pred.month==1), 'linear', 'extrap');
 
 % out
 % dssout for the current time
