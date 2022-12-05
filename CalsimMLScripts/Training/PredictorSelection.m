@@ -61,7 +61,8 @@ sac146Variables = cat(2, ["SR_08S"], sac185Variables);
 sac093Variables = cat(2, ["SR_07S"], sac146Variables);
 
 sac083Variables = cat(2,  ["I_NBLDB", "I_BTC048", "SR_11", "SR_12", "SR_13", "SR_14", "SR_15N", "SR_15S", "SR_16", "SR_17N", "SR_17S", "SR_18", "SR_19"], sac093Variables, orovlVariables, nbldbVariables);
-ybpSpecific = cat(2, clrlkVariables, ["SR_20", "SR_21", "SR_25", "I_PTH070"]);
+brysaVariables = ["S_BRYSA", "I_BRYSA"];
+ybpSpecific = cat(2, clrlkVariables, brysaVariables, ["SR_20", "SR_21", "SR_25", "I_PTH070"]);
 ybpVariables = cat(2, ybpSpecific, sac083Variables);
 
 sac082Variables = cat(2, ["SR_22", "SR_23", "SR_24", "SR_26N"], sac083Variables);
@@ -73,8 +74,10 @@ cmcheVariables = cat(2, pardeVariables, ["S_CMCHE", "I_CMCHE"]);
 mokVariables = cat(2, cmcheVariables, [ "SR_60N"]);
 lowerMokVariables = cat(2, ["I_MOK019B", "I_MOK019A", "I_CSM035"], mokVariables);
 
-sjrInflows = ["I_MCLRE", "SR_60S", "SR_61", "SR_62", "SR_63", "SR_64", "SR_71", "SR_72", "SR_73"];
-sjrVariables = cat(2, mlrtnVariables, sluisVariables, melonVariables, sjrInflows, pedroVariables, estmnVariables, losvqVariables);
+mclreVariables = ["S_MCLRE", "I_MCLRE", "I_MCD080", "I_MCD096", "I_MCD119", "I_MCD128", "I_MSF001", "I_MSF023"];
+
+sjrInflows = ["SR_60S", "SR_61", "SR_62", "SR_63", "SR_64", "SR_71", "SR_72", "SR_73"];
+sjrVariables = cat(2, mlrtnVariables, sluisVariables, melonVariables, sjrInflows, pedroVariables, estmnVariables, losvqVariables, mclreVariables);
 
 projectVariables = ["swpcapacity", "cvpcapacity"];
 
@@ -82,7 +85,7 @@ clvVariables = cat(2, ["I_CLV026"], nhganVariables);
 
 others = ["X2_WHLJPOD_EST_"];
 
- testingVars = ["S_MCLRE", "S_HNSLY", "I_HNSLY"];
+ testingVars = ["S_HNSLY", "I_HNSLY"];
 
 allPredictors = cat(2, sac063Variables, ybpSpecific, sjrVariables, projectVariables, lowerMokVariables, clvVariables, others, testingVars);
 
@@ -342,6 +345,14 @@ storageUsed = AddPrefixIfMissing(storageUsed, calPred, "S_");
 [scoreStruct, CalSimPredictors] = AnalyzeVariableIfUsed(slurm, scoreStruct, CalSimPredictors, calPred, ...
     losvqVariables, calOut, ...
     'S_LOSVQ', storageUsed, 15, false, 'ARDRationalQuadratic');
+
+[scoreStruct, CalSimPredictors] = AnalyzeVariableIfUsed(slurm, scoreStruct, CalSimPredictors, calPred, ...
+    mclreVariables, calOut, ...
+    'S_MCLRE', storageUsed, 15, false, 'ARDRationalQuadratic');
+
+[scoreStruct, CalSimPredictors] = AnalyzeVariableIfUsed(slurm, scoreStruct, CalSimPredictors, calPred, ...
+    brysaVariables, calOut, ...
+    'S_BRYSA', storageUsed, 15, false, 'ARDRationalQuadratic');
 
 variables = unique(cat(2, variables, storageUsed));
 
