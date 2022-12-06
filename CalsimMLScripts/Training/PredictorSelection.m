@@ -61,7 +61,7 @@ sac146Variables = cat(2, ["SR_08S"], sac185Variables);
 sac093Variables = cat(2, ["SR_07S"], sac146Variables);
 
 sac083Variables = cat(2,  ["I_NBLDB", "I_BTC048", "SR_11", "SR_12", "SR_13", "SR_14", "SR_15N", "SR_15S", "SR_16", "SR_17N", "SR_17S", "SR_18", "SR_19"], sac093Variables, orovlVariables, nbldbVariables);
-brysaVariables = ["S_BRYSA", "I_BRYSA"];
+brysaVariables = ["S_BRYSA", "I_PTH070"]; % Diagram says this should be I_BRYSA, but that doesn't exist in the inputs
 ybpSpecific = cat(2, clrlkVariables, brysaVariables, ["SR_20", "SR_21", "SR_25", "I_PTH070"]);
 ybpVariables = cat(2, ybpSpecific, sac083Variables);
 
@@ -74,7 +74,10 @@ cmcheVariables = cat(2, pardeVariables, ["S_CMCHE", "I_CMCHE"]);
 mokVariables = cat(2, cmcheVariables, [ "SR_60N"]);
 lowerMokVariables = cat(2, ["I_MOK019B", "I_MOK019A", "I_CSM035"], mokVariables);
 
-mclreVariables = ["S_MCLRE", "I_MCLRE", "I_MCD080", "I_MCD096", "I_MCD119", "I_MCD128", "I_MSF001", "I_MSF023"];
+mclreVariables = ["S_MCLRE", "I_MCLRE"];
+% The below exist according to the schematic pdf, but not according to the
+% sv files I'm using for training.
+%, "I_MCD080", "I_MCD096", "I_MCD119", "I_MCD128", "I_MSF001", "I_MSF023"];
 
 sjrInflows = ["SR_60S", "SR_61", "SR_62", "SR_63", "SR_64", "SR_71", "SR_72", "SR_73"];
 sjrVariables = cat(2, mlrtnVariables, sluisVariables, melonVariables, sjrInflows, pedroVariables, estmnVariables, losvqVariables, mclreVariables);
