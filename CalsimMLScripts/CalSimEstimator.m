@@ -10,6 +10,7 @@
 %% Some helpful analysis scripts examples
 % analysis = AnalysisScript(calPred, calOut, CalSimModels, variables);
 % FindVariablesUsePredictor(CalSimPredictors, variables, "S_ALMNR")
+% checkData = readtable("D:\GitHub\LCM_ML\Calsim_dss_used\0_DCR19_12.30_120621_NDDOff_2020.dss.csv");
 % outputDiff= CheckPredictions(results, checkData);
 
 %% Needs Improvement/investigation
