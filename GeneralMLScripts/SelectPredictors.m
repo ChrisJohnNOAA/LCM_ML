@@ -1,6 +1,6 @@
-function [predictors, scoreStruct] = SelectPredictors(varName, data, predictors, target, maxPredictors, scoreStruct, indepthSelection, kernelfcn)
+function [predictors, scoreStruct] = SelectPredictors(varName, data, predictors, target, maxPredictors, scoreStruct, indepthSelection, kernelfcn, useGaussian)
     if (indepthSelection)
-        [predictors, scoreStruct] = SequentialSelection(varName, data, predictors, target, maxPredictors, scoreStruct, kernelfcn);
+        [predictors, scoreStruct] = SequentialSelection(varName, data, predictors, target, maxPredictors, scoreStruct, kernelfcn, useGaussian);
     else
         [predictors, scoreStruct] = QuickSelection(varName, data, predictors, target, maxPredictors, scoreStruct);
     end
@@ -36,7 +36,7 @@ function [predictors, scoreStruct] = QuickSelection(varName, data, predictors, t
 end
 
 
-function [predictors, scoreStruct] = SequentialSelection(varName, data, predictors, target, maxPredictors, scoreStruct, kernelfcn)
+function [predictors, scoreStruct] = SequentialSelection(varName, data, predictors, target, maxPredictors, scoreStruct, kernelfcn, useGaussian)
 % Check for correlation p < 0.05
 [r, p] = corr(table2array(data(:, predictors)), ...
     target, 'rows','complete');
@@ -54,11 +54,7 @@ predictors = predictors(p<0.05);
 scoreStruct.(varName+"_f") = table(predictors(featureIndex)', featureScore(featureIndex)');
 predictors = predictors(featureScore > 10);
 
-
-c = cvpartition(target,'k',10);
-opts = statset('Display','iter','UseParallel',true);
-
-function [lossAmount] = FitAndLoss(XTrain,YTrain,XTest,YTest)
+function [lossAmount] = FitAndLossGaus(XTrain,YTrain,XTest,YTest)
     try
         lossAmount = loss(fitrgp(...
             XTrain, ...
@@ -73,8 +69,29 @@ function [lossAmount] = FitAndLoss(XTrain,YTrain,XTest,YTest)
     end
 end
 
+function [lossAmount] = FitAndLossLinear(XTrain,YTrain,XTest,YTest)
+    concatenatedPredictorsAndResponse = array2table(XTrain);
+    concatenatedPredictorsAndResponse.Capacity = YTrain;
+    try
+        model = fitlm(concatenatedPredictorsAndResponse, ...
+            'interactions', ...
+            'RobustOpts', 'off');
+        yfit = predict(model,XTest);
+        lossAmount = mean(abs(yfit-YTest));
+    catch ME
+        disp(ME)
+        lossAmount = 999999999;
+    end
+end
 
-[fs,history] = sequentialfs(@FitAndLoss,table2array(data(:, predictors)),target,'cv',c,'options',opts);
+c = cvpartition(target,'k',10);
+opts = statset('Display','iter','UseParallel',true);
+if (useGaussian)
+    [fs,history] = sequentialfs(@FitAndLossGaus,table2array(data(:, predictors)),target,'cv',c,'options',opts);
+else
+    [fs,history] = sequentialfs(@FitAndLossLinear,table2array(data(:, predictors)),target,'cv',c,'options',opts);
+end
+
 scoreStruct.(varName+"_history") = history;
 predictors = predictors(fs);
 end

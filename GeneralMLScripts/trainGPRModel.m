@@ -1,4 +1,4 @@
-function [trainedModel, validationRMSE] = trainCalSimGPRModel(trainingData, predictorNames, responseData)
+function [trainedModel, validationRMSE] = trainGPRModel(trainingData, predictorNames, responseData)
 % [trainedModel, validationRMSE] = trainRegressionModel(trainingData,
 % responseData)
 % Returns a trained regression model and its RMSE. This code recreates the

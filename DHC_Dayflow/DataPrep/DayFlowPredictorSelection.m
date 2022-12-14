@@ -1,4 +1,4 @@
-function [DayFlowPredictors, scoreStruct] = DayFlowPredictorSelection(bayData, deltaData)
+function [DayFlowPredictors, scoreStruct] = DayFlowPredictorSelection(bayData, deltaData, useGaussian)
 
 bayData = standardizeMissing(bayData, {Inf, -Inf});
 preNormBay= bayData(:, 2:end);
@@ -12,10 +12,10 @@ scoreStruct = struct();
 DayFlowPredictors = struct();
 
 [scoreStruct, DayFlowPredictors] = AnalyzeVariable(scoreStruct, ...
-    DayFlowPredictors, normBay, 'bay_capacity');
+    DayFlowPredictors, normBay, 'bay_capacity', useGaussian);
 
 [scoreStruct, DayFlowPredictors] = AnalyzeVariable(scoreStruct, ...
-    DayFlowPredictors, normDelta, 'delta_capacity');
+    DayFlowPredictors, normDelta, 'delta_capacity', useGaussian);
 
 save("DayFlowPredictors.mat", "DayFlowPredictors");
 save('modelInputScoring.mat', 'scoreStruct');
@@ -23,7 +23,7 @@ save('modelInputScoring.mat', 'scoreStruct');
 end
 
 function [scoreStruct, DayFlowPredictors] = AnalyzeVariable(scoreStruct, ...
-    DayFlowPredictors, data, varName)
+    DayFlowPredictors, data, varName, useGaussian)
     varName
 
     % this is the default value, and many of the other options take
@@ -37,7 +37,7 @@ function [scoreStruct, DayFlowPredictors] = AnalyzeVariable(scoreStruct, ...
     % Globally relevant values, added here to all rather than including in
     % the above lists.
     [predictors, scoreStruct] = SelectPredictors(varName, data, predictors, ...
-        data.Capacity, 10, scoreStruct, true, kernelfcn);
+        data.Capacity, 10, scoreStruct, true, kernelfcn, useGaussian);
     DayFlowPredictors.(varName) = predictors;
 
     predictors

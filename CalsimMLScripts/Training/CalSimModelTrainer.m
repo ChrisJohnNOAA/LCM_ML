@@ -36,14 +36,19 @@ function [CalSimModels] = trainModel(CalSimModels, calPred, CalSimPredictors, ou
                 load(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_rmse.mat'), 'rmse');
                 disp("loaded " + varName)
             else
-                [model, rmse] = trainCalSimGPRModel(calPred, CalSimPredictors.(varName),  output.(varName))
+                [model, rmse] = trainGPRModel(calPred, CalSimPredictors.(varName),  output.(varName))
                 save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_model.mat'), 'model');
                 save(strcat("/hb/scratch/cpjohn/LCM_ML/out/", varName, '_rmse.mat'), 'rmse');
                 disp("finished " + varName)
             end
         else
-            % Train Model
-            [model, rmse] = trainCalSimGPRModel(calPred, CalSimPredictors.(varName),  output.(varName))
+            if (isfile(strcat("D:\GitHub\LCM_ML\CalsimMLScripts\SlurmResults\", varName, '_model.mat')) && isfile(strcat("D:\GitHub\LCM_ML\CalsimMLScripts\SlurmResults\", varName, '_rmse.mat')))
+                load(strcat("D:\GitHub\LCM_ML\CalsimMLScripts\SlurmResults\", varName, '_model.mat'), 'model');
+                load(strcat("D:\GitHub\LCM_ML\CalsimMLScripts\SlurmResults\", varName, '_rmse.mat'), 'rmse');
+            else
+                % Train Model
+                [model, rmse] = trainGPRModel(calPred, CalSimPredictors.(varName),  output.(varName))
+            end
         end
     
         CalSimModels.(varName) = model;

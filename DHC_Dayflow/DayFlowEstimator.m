@@ -19,7 +19,7 @@
 % [analysis, outputDiff] = AnalyzeResults(bay, delta, dayFlowModels, results)
 
 %% DayFlow function
-function [output] = DayFlowEstimator(input, DayFlowModels)
+function [output] = DayFlowEstimator(input, DayFlowModels, useGaussian)
 output = table();
 
 for i=1:height(input)
@@ -34,8 +34,14 @@ for i=1:height(input)
         deltaInput.Properties.VariableNames(j) = "x"+j;
     end
 
-    [output.bay_capacity(i), output.bay_std(i)] = predict(DayFlowModels.Bay.RegressionGP, bayInput);
-    [output.delta_capacity(i), output.delta_std(i)] = predict(DayFlowModels.Delta.RegressionGP, deltaInput);
+    if (useGaussian)
+        [output.bay_capacity(i), output.bay_std(i)] = predict(DayFlowModels.Bay.RegressionGP, bayInput);
+        [output.delta_capacity(i), output.delta_std(i)] = predict(DayFlowModels.Delta.RegressionGP, deltaInput);
+    else
+        [output.bay_capacity(i)] = predict(DayFlowModels.Bay.LinearModel, stepInput);
+        [output.delta_capacity(i)] = predict(DayFlowModels.Delta.LinearModel, stepInput);
+    end
+
 
 end
 
