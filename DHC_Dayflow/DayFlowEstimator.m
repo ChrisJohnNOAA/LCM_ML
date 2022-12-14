@@ -1,7 +1,14 @@
 %% Commands for loading training data and running training
+% All at once:
+% [dayFlowModelsPreLib, dayFlowModelsLibOnly, DayFlowPredictorsPreLib, DayFlowPredictorsLibOnly] = PrepAndTrainDayflow()
+% By Parts:
 % [bay, delta] = PrepTrainingDayFlowData();
 % [DayFlowPredictors, scoreStruct] = DayFlowPredictorSelection(bay, delta);
 % dayFlowModels = DayFlowModelTraining(DayFlowPredictors, bay, delta);
+
+%% Use trained models to predict results
+% newResultsData =  DayFlowMonthlyMean(DayFlowMonthlyMean.Year>=2018, :);
+% newResultsLibOnly = DayFlowEstimator(newResultsData, dayFlowModelsLibOnly);
 
 %% Commands for loading run data and running a simulation
 % predictionTestingData =  DayFlowMonthlyLibOnly(DayFlowMonthlyLibOnly.Year<2018, :);
@@ -27,8 +34,8 @@ for i=1:height(input)
         deltaInput.Properties.VariableNames(j) = "x"+j;
     end
 
-    output.bay_capacity(i) = predict(DayFlowModels.Bay.RegressionGP, bayInput);
-    output.delta_capacity(i) = predict(DayFlowModels.Delta.RegressionGP, deltaInput);
+    [output.bay_capacity(i), output.bay_std(i)] = predict(DayFlowModels.Bay.RegressionGP, bayInput);
+    [output.delta_capacity(i), output.delta_std(i)] = predict(DayFlowModels.Delta.RegressionGP, deltaInput);
 
 end
 

@@ -1,7 +1,9 @@
-function [bayData, deltaData] = PrepTrainingDayFlowData()
-    pred = readtable("D:\GitHub\LCM_ML\DHC_Dayflow\Data\Dayflow\DayFlow_MonthlyMean.csv");
-
-    usePreLibertyIsland = false;
+function [bayData, deltaData] = PrepTrainingDayFlowData(usePreLibertyIsland, useAbs, useX2Delta)
+    if (useAbs)
+        pred = readtable("D:\GitHub\LCM_ML\DHC_Dayflow\Data\Dayflow\DayFlow_MonthlyMean_AllAbs.csv");
+    else
+        pred = readtable("D:\GitHub\LCM_ML\DHC_Dayflow\Data\Dayflow\DayFlow_MonthlyMean.csv");
+    end
 
     % The output doesn't have results for 2018 and later, so we can't use
     % those years for training
@@ -27,4 +29,7 @@ function [bayData, deltaData] = PrepTrainingDayFlowData()
     bayData.Capacity = out(:,4);
     deltaData = pred;
     deltaData.Capacity = out(:,3);
+    if (~useX2Delta)
+        deltaData.X2 = [];
+    end
 end
