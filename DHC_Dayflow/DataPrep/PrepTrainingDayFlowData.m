@@ -42,4 +42,9 @@ function [bayData, deltaData, pred] = PrepTrainingDayFlowData(usePreLibertyIslan
         bayData.GCD = [];
         bayData.CD = [];
     end
+
+    randomOrder = randperm(height(bayData));
+    bayData = bayData(randomOrder,:);
+    randomOrder = randperm(height(deltaData));
+    deltaData = deltaData(randomOrder,:);
 end
