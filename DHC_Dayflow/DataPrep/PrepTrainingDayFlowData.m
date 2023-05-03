@@ -1,4 +1,4 @@
-function [bayData, deltaData] = PrepTrainingDayFlowData(usePreLibertyIsland, useAbs, useX2Delta)
+function [bayData, deltaData, pred] = PrepTrainingDayFlowData(usePreLibertyIsland, useAbs, useX2Delta)
     if (useAbs)
         pred = readtable("D:\GitHub\LCM_ML\DHC_Dayflow\Data\Dayflow\DayFlow_MonthlyMean_AllAbs.csv");
     else
@@ -7,12 +7,12 @@ function [bayData, deltaData] = PrepTrainingDayFlowData(usePreLibertyIsland, use
 
     % The output doesn't have results for 2018 and later, so we can't use
     % those years for training
-    pred = pred(pred.Year<2018,:);
+    training = pred(pred.Year<2018,:);
     if (~usePreLibertyIsland)
         % Only take months with liberty island.
-        pred = pred(pred.LibIsland==1,:);
+        training = training(training.LibIsland==1,:);
         % Remove the liberty island column since it's not useful now.
-        pred = pred(:,1:end-1);
+        training = training(:,1:end-1);
     end
 
     deltaCapacity =  readtable("D:\GitHub\LCM_ML\DHC_Dayflow\Data\DHC_Results\Delta_Capacity95_NoMask_Historical_20210924.xlsx");
@@ -25,11 +25,21 @@ function [bayData, deltaData] = PrepTrainingDayFlowData(usePreLibertyIsland, use
         out = out(~(out(:,1)==1998 & out(:,2)==1), :);
     end
 
-    bayData = pred;
+    bayData = training;
     bayData.Capacity = out(:,4);
-    deltaData = pred;
+    deltaData = training;
     deltaData.Capacity = out(:,3);
     if (~useX2Delta)
         deltaData.X2 = [];
+        deltaData.EFFDIV = [];
+        deltaData.EXPIN = [];
+        deltaData.DIVER = [];
+        deltaData.GCD = [];
+        deltaData.CD = [];
+        bayData.EFFDIV = [];
+        bayData.EXPIN = [];
+        bayData.DIVER = [];
+        bayData.GCD = [];
+        bayData.CD = [];
     end
 end
