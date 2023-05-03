@@ -1,16 +1,16 @@
-function [DayFlowModels] = DayFlowModelTraining(DayFlowPredictors, bayData, deltaData, useGaussian, kernel)
+function [DayFlowModels] = DayFlowModelTraining(DayFlowPredictors, bayData, deltaData, useGaussian, kernel, evaluations)
 
 DayFlowModels = struct();
 
-DayFlowModels = trainModel(DayFlowModels, bayData, DayFlowPredictors.bay_capacity, bayData.Capacity, "Bay", useGaussian, kernel);
-DayFlowModels = trainModel(DayFlowModels, deltaData, DayFlowPredictors.delta_capacity, deltaData.Capacity, "Delta", useGaussian, kernel);
+DayFlowModels = trainModel(DayFlowModels, bayData, DayFlowPredictors.bay_capacity, bayData.Capacity, "Bay", useGaussian, kernel, evaluations);
+DayFlowModels = trainModel(DayFlowModels, deltaData, DayFlowPredictors.delta_capacity, deltaData.Capacity, "Delta", useGaussian, kernel, evaluations);
 
 end
 
-function [DayFlowModels] = trainModel(DayFlowModels, data, predictors, output, varName, useGaussian, kernel)
+function [DayFlowModels] = trainModel(DayFlowModels, data, predictors, output, varName, useGaussian, kernel, evaluations)
     varName
     if (useGaussian)
-        [model, rmse] = trainGPRModel(data, predictors,  output, kernel)
+        [model, rmse] = trainGPRModel(data, predictors,  output, kernel, evaluations)
     else
         [model, rmse] = trainLinearModel(data, predictors,  output)
     end

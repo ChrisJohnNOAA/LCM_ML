@@ -43,8 +43,9 @@ function [bayData, deltaData, pred] = PrepTrainingDayFlowData(usePreLibertyIslan
         bayData.CD = [];
     end
 
+    % We want the delta and bay to be the same random order to simplify
+    % holdout analysis.
     randomOrder = randperm(height(bayData));
     bayData = bayData(randomOrder,:);
-    randomOrder = randperm(height(deltaData));
     deltaData = deltaData(randomOrder,:);
 end
